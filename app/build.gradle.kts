@@ -18,8 +18,8 @@ android {
         applicationId = "org.baumweg.buszaragoza"
         minSdk = 26
         targetSdk = 36
-        versionCode = 26050301
-        versionName = "26.5.3.1"
+        versionCode = 260504
+        versionName = "26.5.4"
     }
 
     signingConfigs {
