@@ -19,7 +19,6 @@ data class Arrival(
 
 data class Favorite(
     val id: String,
-    val name: String,
     val line: String,
     val stopId: String,
     val stopName: String,
@@ -33,10 +32,6 @@ data class Favorite(
 data class LineSchedule(
     val first: LineDeparture? = null,
     val last: LineDeparture? = null,
-    val firstWasFiltered: Boolean = false,
-    val lastWasFiltered: Boolean = false,
-    val firstPartials: List<LineDeparture> = emptyList(),
-    val lastPartials: List<LineDeparture> = emptyList(),
 )
 
 data class LineDeparture(

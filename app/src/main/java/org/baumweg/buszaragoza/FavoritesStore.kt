@@ -30,16 +30,20 @@ class FavoritesStore(context: Context) {
         return buildList {
             for (i in 0 until array.length()) {
                 val o = array.getJSONObject(i)
-                val type = if (o.optString("type") == "TRAM") TransportType.TRAM else TransportType.BUS
+                val id = o.optString("id")
+                val line = o.optString("line")
+                val stopId = o.optString("stopId")
+                val stopName = o.optString("stopName")
+                if (id.isBlank() || line.isBlank() || stopId.isBlank() || stopName.isBlank()) continue
+                val type = runCatching { TransportType.valueOf(o.optString("type")) }.getOrNull() ?: continue
                 add(
                     Favorite(
-                        id = o.optString("id").ifBlank { "${o.optString("line")}-${o.optString("stopId")}" },
-                        name = o.optString("name"),
-                        line = o.optString("line"),
-                        stopId = o.optString("stopId"),
-                        stopName = o.optString("stopName"),
+                        id = id,
+                        line = line,
+                        stopId = stopId,
+                        stopName = stopName,
                         type = type,
-                        code = o.optString("code", o.optString("stopId")),
+                        code = o.optString("code").ifBlank { stopId },
                         direction = o.optInt("direction", 0),
                         destination = o.optString("destination"),
                         description = o.optString("description"),
@@ -53,7 +57,6 @@ class FavoritesStore(context: Context) {
         favorites.forEach { fav ->
             put(JSONObject().apply {
                 put("id", fav.id)
-                put("name", fav.name)
                 put("line", fav.line)
                 put("stopId", fav.stopId)
                 put("stopName", fav.stopName)

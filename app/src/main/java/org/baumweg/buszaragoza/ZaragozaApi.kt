@@ -131,15 +131,9 @@ class ZaragozaApi {
             )
             val firstRows = parseScheduleRows(html, "Primeras salidas")
             val lastRows = parseScheduleRows(html, "Últimas salidas")
-            val first = firstRows.firstFullRoute(fullRoute)
-            val last = lastRows.lastFullRoute(fullRoute)
             LineSchedule(
-                first = first,
-                last = last,
-                firstWasFiltered = first != null && firstRows.firstOrNull() != first,
-                lastWasFiltered = last != null && lastRows.lastOrNull() != last,
-                firstPartials = firstRows.before(first).filterNotFullRoute(fullRoute).take(3),
-                lastPartials = lastRows.after(last).filterNotFullRoute(fullRoute).take(4),
+                first = firstRows.firstFullRoute(fullRoute),
+                last = lastRows.lastFullRoute(fullRoute),
             )
         }
     }
@@ -252,20 +246,6 @@ class ZaragozaApi {
 
     private fun List<LineDeparture>.lastFullRoute(route: FullRoute?): LineDeparture? = route?.let { fullRoute ->
         lastOrNull { departure -> departure.matchesFullRoute(fullRoute) }
-    }
-
-    private fun List<LineDeparture>.before(item: LineDeparture?): List<LineDeparture> {
-        val index = item?.let { indexOf(it) } ?: size
-        return take(index.coerceAtLeast(0))
-    }
-
-    private fun List<LineDeparture>.after(item: LineDeparture?): List<LineDeparture> {
-        val index = item?.let { indexOf(it) } ?: -1
-        return drop(index + 1)
-    }
-
-    private fun List<LineDeparture>.filterNotFullRoute(route: FullRoute?): List<LineDeparture> {
-        return route?.let { fullRoute -> filterNot { it.matchesFullRoute(fullRoute) } } ?: emptyList()
     }
 
     private fun LineDeparture.matchesFullRoute(route: FullRoute): Boolean {

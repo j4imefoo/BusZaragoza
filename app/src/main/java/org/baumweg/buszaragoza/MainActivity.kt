@@ -204,7 +204,7 @@ fun BusZaragozaApp() {
                 onOpen = { openStop(Stop(id = it.stopId, name = it.stopName, line = it.line, type = it.type, code = it.code, direction = it.direction, destination = it.destination)) },
                 onEdit = {
                     editingFavorite = it
-                    editingFavoriteName = it.description.ifBlank { it.name }
+                    editingFavoriteName = favoriteTitle(it)
                 },
                 onDelete = { saveFavorites(state.favorites.filterNot { fav -> fav.id == it.id }) },
                 padding = padding,
@@ -239,7 +239,6 @@ fun BusZaragozaApp() {
                 TextButton(onClick = {
                     val fav = Favorite(
                         id = favoriteId(stop),
-                        name = "${stop.line} · ${stop.name}",
                         line = stop.line,
                         stopId = stop.id,
                         stopName = stop.name,
@@ -269,7 +268,7 @@ fun BusZaragozaApp() {
                         value = editingFavoriteName,
                         onValueChange = { editingFavoriteName = it },
                         label = { Text("Nombre visible") },
-                        placeholder = { Text(fav.name) },
+                        placeholder = { Text(favoriteDefaultTitle(fav)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -337,13 +336,13 @@ private fun FavoritesScreen(favorites: List<Favorite>, onOpen: (Favorite) -> Uni
         items(favorites) { fav ->
             ElevatedCard(onClick = { onOpen(fav) }, modifier = Modifier.fillMaxWidth()) {
                 ListItem(
-                    headlineContent = { Text(fav.description.ifBlank { fav.name }) },
+                    headlineContent = { Text(favoriteTitle(fav)) },
                     supportingContent = {
                         Text(
                             if (fav.description.isBlank()) {
                                 "Parada ${fav.code} · ${fav.stopName}${if (fav.destination.isNotBlank()) " · hacia ${fav.destination}" else ""}"
                             } else {
-                                "${fav.name} · Parada ${fav.code}${if (fav.destination.isNotBlank()) " · hacia ${fav.destination}" else ""}"
+                                "${favoriteDefaultTitle(fav)} · Parada ${fav.code}${if (fav.destination.isNotBlank()) " · hacia ${fav.destination}" else ""}"
                             }
                         )
                     },
@@ -523,15 +522,8 @@ private fun EmptyCard(title: String, subtitle: String) { Card(Modifier.fillMaxWi
 private fun HelpCard() = EmptyCard("Busca rápido", "Escribe una línea, Circular, Tranvía o una referencia. Ejemplos: 38, Ci1, Romareda, Plaza Aragón.")
 private fun titleFor(screen: Screen) = when (screen) { Screen.Home -> "Bus Zaragoza"; Screen.Favorites -> "Favoritos"; is Screen.Line -> "Línea ${screen.line}"; is Screen.StopDetail -> screen.stop.line; Screen.Backup -> "Backup" }
 private fun favoriteId(stop: Stop): String = "${stop.type}-${stop.line}-${stop.id}-${stop.direction}"
-private fun favoriteMatches(stop: Stop, favorite: Favorite): Boolean {
-    if (favorite.type != stop.type) return false
-    val sameLine = favorite.line.equals(stop.line, ignoreCase = true)
-    if (!sameLine) return false
-    if (favorite.id == favoriteId(stop)) return true
-    val favoriteNumbers = listOf(favorite.stopId, favorite.code).filter { it.isNotBlank() }.toSet()
-    val stopNumbers = listOf(stop.id, stop.code).filter { it.isNotBlank() }.toSet()
-    if (favoriteNumbers.intersect(stopNumbers).isNotEmpty()) return true
-    return favorite.id == "${stop.line}-${stop.id}" || favorite.id == "${stop.line}-${stop.code}"
-}
+private fun favoriteDefaultTitle(favorite: Favorite): String = "${favorite.line} · ${favorite.stopName}"
+private fun favoriteTitle(favorite: Favorite): String = favorite.description.ifBlank { favoriteDefaultTitle(favorite) }
+private fun favoriteMatches(stop: Stop, favorite: Favorite): Boolean = favorite.id == favoriteId(stop)
 private fun scheduleTime(departure: LineDeparture?, loading: Boolean): String = if (loading) "…" else departure?.time ?: "—"
 private fun time(millis: Long): String = SimpleDateFormat("HH:mm:ss", Locale("es", "ES")).format(Date(millis))
